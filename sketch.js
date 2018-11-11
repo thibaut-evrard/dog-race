@@ -8,27 +8,78 @@ class car {
     this.length= 20;
     this.width= 20;
     this.speed = 0;
-    this.speedMax = 30;
+    this.speedMax = 7;
     this.pos = createVector(0,0);
     this.angle = 0;
-    this.angleMax = 0.02;
+    this.angleMax = 0.023;
     this.accelerationRate = 100;
     this.decelerationRate = 40;
+    this.angleRate = 0;
+    this.angleDeceleration = 10;
 
     // hitbox
     this.xHitboxMin = this.pos.x - this.length/2;
     this.xHitboxMax = this.pos.x - this.length/2;
     this.yHitboxMin = this.pos.y - this.width/2;
     this.yHitboxMax = this.pos.y - this.width/2;
-    this.img = loadImage("static/care.png");
+
+    //sprite images
+    this.annimTimer = 0;
+    this.annimDeceleration = 0.8;
+
+    var path = "./static/kart/"
+    this.image_3 = loadImage(path+"-3.png");
+    this.image_2 = loadImage(path+"-2.png");
+    this.image_1 = loadImage(path+"-1.png");
+    this.image0 = loadImage(path+"0.png");
+    this.image1 = loadImage(path+"1.png");
+    this.image2 = loadImage(path+"2.png");
+    this.image3 = loadImage(path+"3.png");
+
+    this.sprite = this.image0;
   }
 
   // handles drawing and annimation of the car
   draw() {
+    this.handleAnnimation();
     this.updateModel();
     this.updateRotation();
     this.steer();
     this.updateHitbox();
+  }
+
+  handleAnnimation() {
+    var amount = map(this.speed,0,7,0,0.1);
+
+    if(keyIsPressed) {
+      if(keyIsDown(LEFT_ARROW)) {
+        if(this.annimTimer >= -4 ) this.annimTimer -= amount;
+      }
+
+      if(keyIsDown(RIGHT_ARROW)) {
+        if(this.annimTimer <= 4 ) this.annimTimer += amount;
+      }
+    }
+
+    if(!keyIsDown(LEFT_ARROW) && !keyIsDown(RIGHT_ARROW)) {
+      this.annimTimer /= 2;
+    }
+
+    // left
+    if(this.annimTimer < -0.01) this.sprite = this.image_1;
+    if(this.annimTimer < -1) this.sprite = this.image_2;
+    if(this.annimTimer < -2) this.sprite = this.image_3;
+
+    // right
+    if(this.annimTimer > 0.01) this.sprite = this.image1;
+    if(this.annimTimer > 1) this.sprite = this.image2;
+    if(this.annimTimer > 2) this.sprite = this.image3;
+
+    // straight
+    if(this.annimTimer <= 0.01 && this.annimTimer >= -0.01) {
+      this.sprite = this.image0;
+    }
+
   }
 
   updateHitbox() {
@@ -52,13 +103,6 @@ class car {
         //console.log("false");
         return false;
       }
-    // if(this.xHitboxMax > obstacle.xHitboxMin && this.xHitboxMin < obstacle.xHitboxMax) {
-    //     if(this.yHitboxMax > obstacle.yHitboxMin && this.yHitboxMin < obstacle.yHitboxMax) {
-    //       return true;
-    //     }
-    //     else return false;
-    //   }
-    //   else return false;
   }
 
   // takes care of the visual part of the car
@@ -66,12 +110,11 @@ class car {
     fill(0,255,0);
     stroke(100);
     push();
-    translate(this.pos.x,this.pos.y,15);
+    translate(this.pos.x,this.pos.y,19);
     rotate(this.angle);
     rotateX(-PI/2);
-    texture(this.img);
+    texture(this.sprite);
     plane(40);
-    //box(20);
     pop();
   }
 
@@ -94,15 +137,23 @@ class car {
         if(this.speed > 0) this.speed -= this.speed/this.decelerationRate;
       }
       if(keyIsDown(LEFT_ARROW)) {
-        this.angle -= this.steerFromSpeed();
+        this.angleRate = -this.steerFromSpeed();
+        //this.angle -= this.angleRate;
       }
 
       if(keyIsDown(RIGHT_ARROW)) {
-        this.angle += this.steerFromSpeed();
+        this.angleRate = this.steerFromSpeed();
+        //this.angle += this.angleRate;
       }
     }
+
+    this.angle += this.angleRate;
+
     if(!keyIsDown(UP_ARROW) && !keyIsDown(UP_ARROW)) {
       this.speed *= 0.99;
+    }
+    if(!keyIsDown(LEFT_ARROW) && !keyIsDown(RIGHT_ARROW)) {
+      this.angleRate -= this.angleRate/this.angleDeceleration;
     }
   }
 
