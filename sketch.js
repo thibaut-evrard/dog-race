@@ -27,7 +27,7 @@ class car {
     this.annimTimer = 0;
     this.annimDeceleration = 0.8;
 
-    var path = "./static/kart/"
+    var path = "./static/kart/";
     this.image_3 = loadImage(path+"-3.png");
     this.image_2 = loadImage(path+"-2.png");
     this.image_1 = loadImage(path+"-1.png");
@@ -212,7 +212,7 @@ class obstacle {
     this.height = 50;
     this.x = x;
     this.y = y;
-    this.img = loadImage('static/wal.png')
+    this.img = loadImage('static/kart/wal.png')
 
     // hitbox
     this.xHitboxMin = this.x - this.length/2;
