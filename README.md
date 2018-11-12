@@ -1,7 +1,7 @@
 # dog-race
-simple javascript p5 project
+A simple recing game made in P5.js
 
-#Requirements
+# Requirements
 
 - browser able to run OPENGL
 - laptop
@@ -10,7 +10,7 @@ simple javascript p5 project
 
 - Just clone the repository in your local desktop and open the index.html file with your browser
 
-# help me!
+# Get involved
 
 - if you feel like helping, dont hesitate to branch the code!
 - you can also make annimations and textures ;)
