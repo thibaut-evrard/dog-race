@@ -246,7 +246,7 @@ function setup() {
   myEnvironment = new environment();
   myEnvironment.setup();
 
-  for(var i=0; i<50; i++) {
+  for(var i=0; i<200; i++) {
     var x = random(-myEnvironment.length/2,myEnvironment.length/2);
     var y = random(-myEnvironment.width/2,myEnvironment.width/2);
     var newObstacle = new obstacle(x,y);
