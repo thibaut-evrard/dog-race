@@ -8,14 +8,14 @@ class car {
     this.length= 20;
     this.width= 20;
     this.speed = 0;
-    this.speedMax = 7;
+    this.speedMax = 20;
     this.pos = createVector(0,0);
     this.angle = 0;
-    this.angleMax = 0.023;
+    this.angleMax = 0.05;
     this.accelerationRate = 100;
-    this.decelerationRate = 40;
+    this.decelerationRate = 15;
     this.angleRate = 0;
-    this.angleDeceleration = 10;
+    this.angleDeceleration = 1;
 
     // hitbox
     this.xHitboxMin = this.pos.x - this.length/2;
@@ -110,7 +110,7 @@ class car {
     fill(0,255,0);
     stroke(100);
     push();
-    translate(this.pos.x,this.pos.y,19);
+    translate(this.pos.x,this.pos.y,17);
     rotate(this.angle);
     rotateX(-PI/2);
     texture(this.sprite);
@@ -170,6 +170,7 @@ class car {
   // when the car collides a wall.
   bump() {
     this.speed = -2;
+    //this.speed = Math.sign(this.speed) * (-2);
   }
 
 
@@ -179,8 +180,8 @@ class car {
 // ENVIRONMENT OBJECT CLASS (BACKDROP) - - - - - - - - - - - - - - - - - - - - -
 class environment {
   constructor() {
-    this.length = 2000;
-    this.width = 2000;
+    this.length = 5000;
+    this.width = 5000;
     this.pg;
   }
 
@@ -205,29 +206,77 @@ class environment {
 
 
 // OBSTACLES CLASS (WALLS)- - - - - - - - - - - - - - - - - - - - - - - - - - -
-class obstacle {
+class track {
   constructor(x,y) {
-    this.length = 50;
-    this.width = 50;
-    this.height = 50;
+    this.length = 100;
+    this.width = 100;
+    this.height = 30;
     this.x = x;
     this.y = y;
-    this.img = loadImage('static/kart/wal.png')
+    this.texture = loadImage('static/kart/wal.png')
 
     // hitbox
     this.xHitboxMin = this.x - this.length/2;
     this.xHitboxMax = this.x - this.length/2;
     this.yHitboxMin = this.y - this.width/2;
     this.yHitboxMax = this.y - this.width/2;
+
+    this.img = img;
+    this.land = new Array();
+    this.clippingDistance = 2000;
+  }
+
+  translateTrack() {
+    this.img.loadPixels();
+    for(var y=0; y<this.img.height; y++) {
+      for(var x=0; x<this.img.width; x++) {
+        var pos = (y*this.img.width + x)*4;
+        var value = this.img.pixels[pos] + this.img.pixels[pos+1] + this.img.pixels[pos+2];
+        if(value == 0) {
+          console.log("x= " + x + ", y= " + y);
+           this.land.push(1);
+         }
+        else {
+          this.land.push(0);
+        }
+      }
+    }
+  }
+
+  drawTrack(carX,carY) {
+    background(200);
+    for(var y=0; y<this.img.height; y++) {
+      for(var x=0; x<this.img.width; x++) {
+        var pos = (y*this.img.width + x);
+        if(this.land[pos] == 0) { continue; }
+        else if(this.clipping(carX,carY,x*100,y*100)) {
+          this.drawModel(x,y);
+        }
+      }
+    }
   }
 
   // visual part of the wall
-  drawModel() {
-    texture(this.img);
+  drawModel(x,y) {
+
+    texture(this.texture);
+    //fill(0,255,0);
+    noStroke();
     push();
-    translate(this.x,this.y,this.height/2);
+    translate(-2000,-2000);
+    translate(x*100,y*100,this.height/2);
     box(this.length, this.width, this.height);
     pop();
+  }
+
+  clipping(carX,carY,landX,landY) {
+    var distance = dist(carX,carY,landX-2000,landY-2000);
+    if(distance < this.clippingDistance) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 }
 
@@ -237,7 +286,15 @@ var cab;
 var myEnvironment;
 var obstacles = [];
 
+//track vars
+var img;
+var level;
+
 //////////////////////     P5 METHODS    ///////////////////////////////////////
+function preload() {
+  img = loadImage("./static/level/track.png");
+}
+
 function setup() {
   createCanvas(windowWidth-30,windowHeight-30, WEBGL);
   rectMode(CENTER);
@@ -246,24 +303,25 @@ function setup() {
   myEnvironment = new environment();
   myEnvironment.setup();
 
-  for(var i=0; i<200; i++) {
-    var x = random(-myEnvironment.length/2,myEnvironment.length/2);
-    var y = random(-myEnvironment.width/2,myEnvironment.width/2);
-    var newObstacle = new obstacle(x,y);
-    obstacles.push(newObstacle);
-  }
+  level = new track();
+  level.translateTrack();
+
+  // for(var i=0; i<200; i++) {
+  //   var x = random(-myEnvironment.length/2,myEnvironment.length/2);
+  //   var y = random(-myEnvironment.width/2,myEnvironment.width/2);
+  //   var newObstacle = new obstacle(x,y);
+  //   obstacles.push(newObstacle);
+  // }
 }
 
 function draw() {
+  frameRate(30);
   background(122,250,255);
-
+  level.drawTrack(cab.pos.x,cab.pos.y);
   // draws the textured floor
   myEnvironment.draw();
 
-  for(var i=0; i<obstacles.length; i++) {
-    obstacles[i].drawModel();
-    if(cab.hits(obstacles[i])) cab.bump();
-  }
+  colider();
   //drawWall();
   //collision();
 
@@ -274,16 +332,11 @@ function draw() {
 
 //////////////////////     CUSTOM FUNCTIONS    /////////////////////////////////
 
-// function collision() {
-//   var cx = (wall.length/2)+(car.length/2);
-//   var cy = (wall.width/2)+(car.width/2);
-//   var dx = abs(car.pos.x - wall.x);
-//   var dy = abs(car.pos.y - wall.y);
-//
-//   if(dx<cx && dy<cy) {
-//     carBump();
-//   }
-// }
+function colider() {
+  for(var i=0; i<level.land.length; i++) {
+    if(cab.hits(level.land[i])) cab.bump();
+  }
+}
 
 function drawCam(cab) {
   var camRot = createVector(0,100);
