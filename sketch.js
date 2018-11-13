@@ -89,20 +89,28 @@ class car {
     this.yHitboxMax = this.pos.y - this.width/3;
   }
 
-  hits(obstacle) {
+  hits(level) {
     //console.log(1);
-      var cx = (this.length/2)+(obstacle.length/2);
-      var cy = (this.width/2)+(obstacle.width/2);
-      var dx = abs(this.pos.x - obstacle.x);
-      var dy = abs(this.pos.y - obstacle.y);
+    for(var i=0; i<level.land.length; i++) {
+      // going from array to pos
+      if(level.land[i] == 1) {
+        var posLevelX = i%level.img.width;
+        var posLevelY = Math.floor(i/level.img.width);
 
-      if(dx<cx && dy<cy) {
-        return true;
+        // preping variables
+        var cx = (this.length/2)+(level.length/2);
+        var cy = (this.width/2)+(level.width/2);
+        var dx = abs(this.pos.x - (posLevelX*level.scale));
+        var dy = abs(this.pos.y - (posLevelY*level.scale));
+
+        // checking condition
+        if(dx<cx && dy<cy) {
+          console.log("x= " + posLevelX + " y= " + posLevelY);
+           return true;
+         }
       }
-      else {
-        //console.log("false");
-        return false;
-      }
+    }
+    return false;
   }
 
   // takes care of the visual part of the car
@@ -208,6 +216,8 @@ class environment {
 // OBSTACLES CLASS (WALLS)- - - - - - - - - - - - - - - - - - - - - - - - - - -
 class track {
   constructor(x,y) {
+    this.scale = 100;
+
     this.length = 100;
     this.width = 100;
     this.height = 30;
@@ -249,7 +259,7 @@ class track {
       for(var x=0; x<this.img.width; x++) {
         var pos = (y*this.img.width + x);
         if(this.land[pos] == 0) { continue; }
-        else if(this.clipping(carX,carY,x*100,y*100)) {
+        else if(this.clipping(carX,carY,x*this.scale,y*this.scale)) {
           this.drawModel(x,y);
         }
       }
@@ -258,19 +268,18 @@ class track {
 
   // visual part of the wall
   drawModel(x,y) {
-
     texture(this.texture);
     //fill(0,255,0);
     noStroke();
     push();
-    translate(-2000,-2000);
-    translate(x*100,y*100,this.height/2);
+    //translate(-2000,-2000);
+    translate(x*this.scale,y*this.scale,this.height/2);
     box(this.length, this.width, this.height);
     pop();
   }
 
   clipping(carX,carY,landX,landY) {
-    var distance = dist(carX,carY,landX-2000,landY-2000);
+    var distance = dist(carX,carY,landX,landY);
     if(distance < this.clippingDistance) {
       return true;
     }
@@ -333,9 +342,7 @@ function draw() {
 //////////////////////     CUSTOM FUNCTIONS    /////////////////////////////////
 
 function colider() {
-  for(var i=0; i<level.land.length; i++) {
-    if(cab.hits(level.land[i])) cab.bump();
-  }
+    if(cab.hits(level)) cab.bump();
 }
 
 function drawCam(cab) {
