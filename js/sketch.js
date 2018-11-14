@@ -181,24 +181,17 @@ class environment {
   constructor() {
     this.length = 10000;
     this.width = 10000;
-    this.pg;
+    this.textureSample = loadImage("./static/level/textures/floor.png");
+    this.texture = createImage(500,500);
   }
 
   setup() {
-    this.pg = createGraphics(200,200);
-    this.pg.background(0,250,100);
-    this.pg.fill(0,200,100);
-    this.pg.noStroke();
-    for(var x=0; x<20; x++) {
-      for(var y=0; y<20; y++) {
-        this.pg.ellipse(x*10,y*10,5,5);
-      }
-    }
+
   }
 
   draw() {
-    fill(200);
-    //texture(this.pg);
+    //fill(200);
+    texture(this.textureSample);
     plane(this.length,this.width);
   }
 
@@ -207,7 +200,7 @@ class environment {
 
 // OBSTACLES CLASS (WALLS)- - - - - - - - - - - - - - - - - - - - - - - - - - -
 class track {
-  constructor() {
+  constructor(img) {
     // multiplication rate from PNG to real life
     this.scale = 100;
 
@@ -215,9 +208,12 @@ class track {
     this.length = 100;
     this.width = 100;
     this.height = 30;
-    this.texture = loadImage('static/kart/wal.png')
 
-    this.img = img;
+    this.wallTexture = loadImage('./static/level/textures/wall.png')
+    this.speedTexture = loadImage('./static/level/textures/speed.png')
+
+
+    this.floorPlan = img;
     this.land = new Array();
     this.clippingDistance = 2000;
 
@@ -225,13 +221,13 @@ class track {
   }
 
   translateTrack() {
-    this.img.loadPixels();
-    for(var y=0; y<this.img.height; y++) {
-      for(var x=0; x<this.img.width; x++) {
-        var pos = (y*this.img.width + x)*4;
-        var r = this.img.pixels[pos];
-        var g = this.img.pixels[pos+1];
-        var b = this.img.pixels[pos+2];
+    this.floorPlan.loadPixels();
+    for(var y=0; y<this.floorPlan.height; y++) {
+      for(var x=0; x<this.floorPlan.width; x++) {
+        var pos = (y*this.floorPlan.width + x)*4;
+        var r = this.floorPlan.pixels[pos];
+        var g = this.floorPlan.pixels[pos+1];
+        var b = this.floorPlan.pixels[pos+2];
         this.storeObjects(r,g,b,x,y);
       }
     }
@@ -280,11 +276,12 @@ class track {
     translate(obj.x,obj.y,0.1);
       if(obj.type === "wall") {
         translate(0,0,this.height/2);
-        texture(this.texture);
+        texture(this.wallTexture);
         box(this.length, this.width, this.height);
       }
       if(obj.type === "speed") {
-        fill(255,0,0);
+        fill(0,0,0,0);
+        texture(this.speedTexture);
         plane(this.length, this.width);
       }
     pop();
@@ -307,20 +304,26 @@ var cab;
 var myEnvironment;
 var obstacles = [];
 
+
 //track vars
-var img;
 var level;
+var img;
+var backgroundImage;
 
 //////////////////////     P5 METHODS    ///////////////////////////////////////
+
 function preload() {
-  img = loadImage("./static/level/track.png");
+  img = loadImage('./static/level/map/track.png');
 }
 
 function setup() {
   createCanvas(windowWidth-30,windowHeight-30, WEBGL);
   rectMode(CENTER);
 
-  level = new track();
+  backgroundImage = loadImage('./static/level/textures/background.png');
+  backgroundImage.resize(windowWidth-30,windowHeight-30);
+
+  level = new track(img);
   level.translateTrack();
 
   cab = new car(level.carStartingPoint);
