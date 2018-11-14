@@ -7,8 +7,10 @@ class car {
     this.length= 20;
     this.width= 20;
     this.speed = 0;
+    this.speedZ = 1;
     this.speedMax = 20;
-    this.pos = createVector(carStartingPoint.x,carStartingPoint.y);
+    this.minZ = 17;
+    this.pos = createVector(carStartingPoint.x,carStartingPoint.y,200);
     this.angle = 0;
     this.angleMax = 0.05;
     this.accelerationRate = 100;
@@ -16,7 +18,7 @@ class car {
     this.angleRate = 0;
     this.angleDeceleration = 1;
 
-    this.boostRate = 1.5;
+    this.boostRate = 1.1;
 
     //sprite images
     this.annimTimer = 0;
@@ -94,11 +96,14 @@ class car {
       var dx = abs(this.pos.x - level.land[i].x);
       var dy = abs(this.pos.y - level.land[i].y);
       if(dx<cx && dy<cy) {
-        if(level.land[i].type === "wall") {
+        if(level.land[i].type === "wall" && this.pos.z <= level.height) {
           return true;
         }
-        if(level.land[i].type === "speed") {
-          if(this.speed<45) this.speed *= this.boostRate;
+        if(level.land[i].type === "speed" && this.pos.z == this.minZ) {
+            if(this.speed<45) this.speed *= this.boostRate;
+        }
+        if(level.land[i].type === "jump" && this.pos.z == this.minZ) {
+          this.speedZ = -20;
         }
       }
     }
@@ -110,7 +115,7 @@ class car {
     fill(0,255,0);
     stroke(100);
     push();
-    translate(this.pos.x,this.pos.y,17);
+    translate(this.pos.x,this.pos.y,this.pos.z);
     rotate(this.angle);
     rotateX(-PI/2);
     texture(this.sprite);
@@ -127,7 +132,7 @@ class car {
 
   // makes the car respond to user input
   steer(key) {
-    //console.log("steering");
+    // if the car is being moved
     if(keyIsPressed) {
       if(keyIsDown(UP_ARROW)) {
         if(this.speed == 0) { this.speed+=0.1; }
@@ -147,12 +152,23 @@ class car {
       }
     }
 
+    //handling deceleration
     this.angle += this.angleRate;
     if((!keyIsDown(UP_ARROW) && !keyIsDown(UP_ARROW)) || this.speed>this.speedMax) {
       this.speed *= 0.99;
     }
     if(!keyIsDown(LEFT_ARROW) && !keyIsDown(RIGHT_ARROW)) {
       this.angleRate -= this.angleRate/this.angleDeceleration;
+    }
+
+    //handling Z position
+    if(this.speedZ != 0 || this.pos.z != this.minZ) {
+      this.speedZ += 1;
+      this.pos.z -= this.speedZ;
+    }
+    if(this.pos.z<this.minZ) {
+      this.pos.z = this.minZ;
+      this.speedZ = 0;
     }
   }
 
@@ -252,7 +268,17 @@ class track {
          type: "speed"
        }
        this.land.push(obj);
-      }
+    }
+
+    // BLUE = JUMP
+    if(r==0 && g==0 && b==255) {
+       var obj = {
+         x: x*this.scale,
+         y: y*this.scale,
+         type: "jump"
+       }
+       this.land.push(obj);
+    }
 
     // GREEN = START
     if(r==0 && g==255 && b==0) {
@@ -282,6 +308,11 @@ class track {
       if(obj.type === "speed") {
         fill(0,0,0,0);
         texture(this.speedTexture);
+        plane(this.length, this.width);
+      }
+      if(obj.type === "jump") {
+        fill(0,0,255);
+        //texture(this.speedTexture);
         plane(this.length, this.width);
       }
     pop();
@@ -365,5 +396,5 @@ function drawCam(cab) {
   camRot.rotate(-cab.angle);
   var x = cab.pos.x - camRot.x;
   var y = cab.pos.y + camRot.y;
-  camera(x,y, 50, cab.pos.x, cab.pos.y, 40, 0, 0, -1);
+  camera(x,y, cab.pos.z + (50-17), cab.pos.x, cab.pos.y, cab.pos.z + 23, 0, 0, -1);
 }
