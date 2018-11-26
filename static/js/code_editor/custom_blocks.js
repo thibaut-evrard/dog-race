@@ -45,7 +45,7 @@ Blockly.defineBlocksWithJsonArray([
 },
 {
   "type": "main",
-  "message0": "when start is pressed %1",
+  "message0": "when 'a' is pressed%1",
   "args0": [
     {
       "type": "input_statement",
@@ -53,6 +53,25 @@ Blockly.defineBlocksWithJsonArray([
     }
   ],
   "colour": 230,
+  "tooltip": "",
+  "helpUrl": ""
+},
+{
+  "type": "jump",
+  "message0": "jump %1",
+  "args0": [
+    {
+      "type": "field_number",
+      "name": "HEIGHT",
+      "value": 10,
+      "min": 0,
+      "max": 40,
+      "precision": 1
+    }
+  ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 330,
   "tooltip": "",
   "helpUrl": ""
 }
@@ -83,5 +102,12 @@ Blockly.JavaScript['main'] = function(block) {
   var statements_main = Blockly.JavaScript.statementToCode(block, 'MAIN');
   // TODO: Assemble JavaScript into code variable.
   var code =  'async function run() {\n' + statements_main + '} \n run();'
+  return code;
+};
+
+Blockly.JavaScript['jump'] = function(block) {
+  var number_height = block.getFieldValue('HEIGHT');
+  // TODO: Assemble JavaScript into code variable.
+  var code = 'cab.jump('+number_height+');\n';
   return code;
 };

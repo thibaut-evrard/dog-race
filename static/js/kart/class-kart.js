@@ -188,5 +188,8 @@ class car {
     //this.speed = Math.sign(this.speed) * (-2);
   }
 
+  jump(amount) {
+    this.speedZ = -amount;
+  }
 
 }
