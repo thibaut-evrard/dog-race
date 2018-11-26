@@ -12,8 +12,8 @@ var backgroundImage;
 
 
 //path vars
-var pathToTextures = './static/textures'
-var pathToLevel = './static/level/map'
+var pathToTextures = './static/ressources/textures'
+var pathToLevel = './static/ressources/level/map'
 //////////////////////     P5 METHODS    ///////////////////////////////////////
 
 function preload() {
