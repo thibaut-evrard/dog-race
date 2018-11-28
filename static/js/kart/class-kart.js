@@ -9,8 +9,9 @@ class car {
     this.speed = 0;
     this.speedZ = 1;
     this.speedMax = 20;
-    this.minZ = 17;
+    //this.minZ = 17;
     this.pos = createVector(carStartingPoint.x,carStartingPoint.y,200);
+    this.center = -200;
     this.angle = 0;
     this.angleMax = 0.05;
     this.accelerationRate = 100;
@@ -86,30 +87,6 @@ class car {
     this.yHitboxMax = this.pos.y - this.width/3;
   }
 
-  // checks if the car collides with the environment
-  // IF wall: TRUE, ELSE behavior
-  hits(level) {
-    //console.log(1);
-    for(var i=0; i<level.land.length; i++) {
-      var cx = (this.length/2)+(level.length/2);
-      var cy = (this.width/2)+(level.width/2);
-      var dx = abs(this.pos.x - level.land[i].x);
-      var dy = abs(this.pos.y - level.land[i].y);
-      if(dx<cx && dy<cy) {
-        if(level.land[i].type === "wall" && this.pos.z <= level.height) {
-          return true;
-        }
-        if(level.land[i].type === "speed" && this.pos.z == this.minZ) {
-            if(this.speed<45) this.speed *= this.boostRate;
-        }
-        if(level.land[i].type === "jump" && this.pos.z == this.minZ) {
-          this.speedZ = -20;
-        }
-      }
-    }
-    return false;
-  }
-
   // takes care of the visual part of the car
   updateModel() {
     fill(0,255,0);
@@ -162,12 +139,12 @@ class car {
     }
 
     //handling Z position
-    if(this.speedZ != 0 || this.pos.z != this.minZ) {
+    if(this.speedZ != 0 || this.pos.z != minZ+17) {
       this.speedZ += 1;
-      this.pos.z -= this.speedZ;
+      this.pos.z-= this.speedZ;
     }
-    if(this.pos.z<this.minZ) {
-      this.pos.z = this.minZ;
+    if(this.pos.z<minZ+17) {
+      this.pos.z = minZ+17;
       this.speedZ = 0;
     }
   }
@@ -189,7 +166,12 @@ class car {
   }
 
   jump(amount) {
-    this.speedZ = -amount;
+    if(this.pos.z-17 == minZ) {
+      this.speedZ = -amount;
+    }
   }
 
+  boost() {
+    if(this.speed<45) this.speed *= this.boostRate;
+  }
 }

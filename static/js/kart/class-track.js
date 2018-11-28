@@ -12,9 +12,6 @@ class track {
     this.width = 100;
     this.height = 30;
 
-    this.wallTexture = loadImage(pathToTextures + '/world/wall.png')
-    this.speedTexture = loadImage(pathToTextures + '/world/speed.png')
-
 
     this.floorPlan = img;
     this.land = new Array();
@@ -39,32 +36,21 @@ class track {
   storeObjects(r,g,b,x,y) {
     // BLACK = WALL
     if(r==0 && g==0 && b==0) {
-      var obj = {
-        x: x*this.scale,
-        y: y*this.scale,
-        type: "wall"
-      }
-      this.land.push(obj);
+      var obstacle = new colidable("wall",this.scale,x,y);
+      this.land.push(obstacle);
+      console.log("wall pushed");
      }
 
     // RED = SPEED
     if(r==255 && g==0 && b==0) {
-       var obj = {
-         x: x*this.scale,
-         y: y*this.scale,
-         type: "speed"
-       }
-       this.land.push(obj);
+      var obstacle = new colidable("speed",this.scale,x,y);
+      this.land.push(obstacle);
     }
 
     // BLUE = JUMP
     if(r==0 && g==0 && b==255) {
-       var obj = {
-         x: x*this.scale,
-         y: y*this.scale,
-         type: "jump"
-       }
-       this.land.push(obj);
+      var obstacle = new colidable("jump",this.scale,x,y);
+      this.land.push(obstacle);
     }
 
     // GREEN = START
@@ -74,44 +60,9 @@ class track {
   }
 
   drawTrack(car) {
+    minZ = 0;
     for(var i=0; i<this.land.length; i++) {
-      if(this.clipping(car,i)) {
-        this.drawModel(this.land[i]);
-      }
-    }
-  }
-
-  // visual part of the wall
-  drawModel(obj) {
-    noStroke();
-    push();
-    //translate(-2000,-2000);
-    translate(obj.x,obj.y,0.1);
-      if(obj.type === "wall") {
-        translate(0,0,this.height/2);
-        texture(this.wallTexture);
-        box(this.length, this.width, this.height);
-      }
-      if(obj.type === "speed") {
-        fill(0,0,0,0);
-        texture(this.speedTexture);
-        plane(this.length, this.width);
-      }
-      if(obj.type === "jump") {
-        fill(0,0,255);
-        //texture(this.speedTexture);
-        plane(this.length, this.width);
-      }
-    pop();
-  }
-
-  clipping(car,i) {
-    var distance = dist(car.pos.x,car.pos.y,this.land[i].x,this.land[i].y);
-    if(distance < this.clippingDistance) {
-      return true;
-    }
-    else {
-      return false;
+      this.land[i].draw();
     }
   }
 }

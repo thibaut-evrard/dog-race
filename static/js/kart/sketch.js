@@ -3,6 +3,7 @@
 var cab;
 var myEnvironment;
 var obstacles = [];
+var minZ;
 
 
 //track vars
@@ -41,16 +42,12 @@ function draw() {
   level.drawTrack(cab);
   myEnvironment.draw();
 
-  colider();
+  //colider();
   cab.draw();
   drawCam(cab);
 }
 
 //////////////////////     CUSTOM FUNCTIONS    /////////////////////////////////
-
-function colider() {
-    if(cab.hits(level)) cab.bump();
-}
 
 function drawCam(cab) {
   var camRot = createVector(0,100);
