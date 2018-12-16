@@ -33,25 +33,26 @@ function setup() {
 
   cab = new car(level.carStartingPoint);
   myEnvironment = new environment();
-  myEnvironment.setup();
+  //myEnvironment.setup();
 }
 
 function draw() {
+  cab.update();
   frameRate(30);
   background(122,250,255);
   level.drawTrack(cab);
   myEnvironment.draw();
-
-  //colider();
   cab.draw();
   drawCam(cab);
+
+  //colider();
 }
 
 //////////////////////     CUSTOM FUNCTIONS    /////////////////////////////////
 
 function drawCam(cab) {
   var camRot = createVector(0,100);
-  camRot.rotate(-cab.angle);
+  camRot.rotate(-cab.alpha);//-(cab.v.heading()-(PI/2)));
   var x = cab.pos.x - camRot.x;
   var y = cab.pos.y + camRot.y;
   camera(x,y, cab.pos.z + (50-17), cab.pos.x, cab.pos.y, cab.pos.z + 23, 0, 0, -1);

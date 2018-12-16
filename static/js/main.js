@@ -4,6 +4,8 @@ $(document).ready(function() {
   console.log("document is ready");
   workspace = Blockly.inject('blocklyDiv',
     {toolbox: document.getElementById('toolbox')});
+
+  $("#blocklyDiv").toggle();
 });
 
 $("#code").click(function() {

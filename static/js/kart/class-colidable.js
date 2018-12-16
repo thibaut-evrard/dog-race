@@ -1,21 +1,25 @@
 class colidable {
   constructor(type,scale,x,y) {
-    this.clippingDistance = 2000;
+    this.clippingDistance = 3000;
     this.scale = scale;
-    this.pos = createVector(x*scale,y*scale,0.1);
     this.length = 100;
     this.width = 100;
 
+    this.delay = 0;
+    this.clippingValue = false;
+
     switch(type) {
       case "wall":
+      this.pos = createVector(x*scale,y*scale,0);
       this.height = 30;
-        this.type = "wall";
-        this.center = this.height/2;
-        this.build = "box";
-        this.texture = loadImage(pathToTextures + '/world/wall.png');
+      this.type = "wall";
+      this.center = this.height/2;
+      this.build = "box";
+      this.texture = loadImage(pathToTextures + '/world/wall.png');
         break;
 
       case "speed":
+      this.pos = createVector(x*scale,y*scale,0.1);
       this.height = 0;
       this.type = "speed";
       this.center = 0.1;
@@ -24,6 +28,7 @@ class colidable {
         break;
 
       case "jump":
+      this.pos = createVector(x*scale,y*scale,0.1);
       this.height = 0;
       this.type = "jump";
       this.center = 0.1;
@@ -32,6 +37,7 @@ class colidable {
         break;
 
       case "start":
+      this.pos = createVector(x*scale,y*scale,0.1);
       this.height = 0;
       this.type = "start";
       this.center = 0.1;
@@ -41,11 +47,14 @@ class colidable {
     }
   }
 
-  draw() {
-    if(this.clipping() == true) {
+  draw(cabHeading) {
+
+    this.delay ++;
+    if((this.delay%5) == 0) this.clippingValue = this.clipping(cabHeading);
+    if(this.clippingValue == true) {
       this.collider();
       push();
-        translate(this.pos.x,this.pos.y,this.center);
+        translate(this.pos.x,this.pos.y,this.pos.z+this.center);
         texture(this.texture);
         if(this.build == "plane") { plane(this.length, this.width); }
         else { box(this.length,this.width,this.height); }
@@ -53,14 +62,18 @@ class colidable {
     }
   }
 
-  clipping() {
-    var distance = dist(cab.pos.x,cab.pos.y,this.pos.x,this.pos.y);
-    if(distance < this.clippingDistance) {
-      return true;
-    }
-    else {
-      return false;
-    }
+  clipping(cabHeading) {
+    var result = true;
+    // ANGLE CLIPPING
+    var offsetX = cab.pos.x - this.pos.x;
+    var offsetY = cab.pos.y - this.pos.y;
+    var directionBlock = createVector(offsetX,offsetY);
+    var angle = cabHeading.angleBetween(directionBlock);
+    if(abs(angle) > PI/3.5) result = false; // clipping from angle
+    if(directionBlock.mag() >= 2500) result = false; // clipping from distance
+    if(directionBlock.mag() <= 300) result = true; // if the brick is super close, display it anyway
+
+    return result;
   }
 
   collider() {
@@ -74,17 +87,14 @@ class colidable {
 
     if(xDist<xHitdist && yDist<yHitdist && zDist<zHitdist) {
       //alert("now");
-      console.log("zdist = " + zDist + ", zhDist = " + zHitdist);
-      if(this.type == "wall") cab.bump();
+      //console.log("zdist = " + zDist + ", zhDist = " + zHitdist);
+      if(this.type == "wall") cab.bump(this.pos);
       if(this.type == "speed") cab.boost();
-      if(this.type == "jump") cab.jump(20);
+      if(this.type == "jump") cab.jump(10);
     }
 
     else if(xDist<xHitdist && yDist<yHitdist) {
-      minZ = this.height+17;
+      if(this.type == "wall") cab.minZ = this.height+17;
     }
-
-
-
   }
 }

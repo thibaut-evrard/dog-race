@@ -61,8 +61,9 @@ class track {
 
   drawTrack(car) {
     minZ = 0;
+    var cabHeading = p5.Vector.add(cab.u).rotate(cab.alpha);
     for(var i=0; i<this.land.length; i++) {
-      this.land[i].draw();
+      this.land[i].draw(cabHeading);
     }
   }
 }
