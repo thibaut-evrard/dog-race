@@ -18,6 +18,24 @@ class colidable {
       this.texture = loadImage(pathToTextures + '/world/wall.png');
         break;
 
+      case "road":
+      this.pos = createVector(x*scale,y*scale,0.1);
+      this.height = 0;
+      this.type = "road";
+      this.center =  0.1;
+      this.build = "plane";
+      this.texture = loadImage(pathToTextures + '/world/road.png');
+        break;
+
+      case "grass":
+      this.pos = createVector(x*scale,y*scale,0.1);
+      this.height = 0;
+      this.type = "grass";
+      this.center = 0.1;
+      this.build = "plane";
+      this.texture = loadImage(pathToTextures + '/world/grass.png');
+        break;
+
       case "speed":
       this.pos = createVector(x*scale,y*scale,0.1);
       this.height = 0;
@@ -50,9 +68,9 @@ class colidable {
   draw(cabHeading) {
 
     this.delay ++;
-    if((this.delay%5) == 0) this.clippingValue = this.clipping(cabHeading);
+    if(dist(this.pos.x,this.pos.y,this.pos.z,cab.pos.x,cab.pos.y,cab.pos.z) < 100) this.collider();
+    if((this.delay%5) == 0) this.clippingValue = this.clipping(cabHeading,this.pos.x,this.pos.y);
     if(this.clippingValue == true) {
-      this.collider();
       push();
         translate(this.pos.x,this.pos.y,this.pos.z+this.center);
         texture(this.texture);
@@ -62,14 +80,14 @@ class colidable {
     }
   }
 
-  clipping(cabHeading) {
+  clipping(cabHeading, x,y) {
     var result = true;
     // ANGLE CLIPPING
-    var offsetX = cab.pos.x - this.pos.x;
-    var offsetY = cab.pos.y - this.pos.y;
+    var offsetX = cab.pos.x - x;
+    var offsetY = cab.pos.y - y;
     var directionBlock = createVector(offsetX,offsetY);
     var angle = cabHeading.angleBetween(directionBlock);
-    if(abs(angle) > PI/3.5) result = false; // clipping from angle
+    if(abs(angle) > PI/2) result = false; // clipping from angle
     if(directionBlock.mag() >= 2500) result = false; // clipping from distance
     if(directionBlock.mag() <= 300) result = true; // if the brick is super close, display it anyway
 
@@ -85,16 +103,17 @@ class colidable {
     var yDist = abs(cab.pos.y - this.pos.y);
     var zDist = abs((cab.pos.z-17) - (this.pos.z));
 
+    if(xDist<xHitdist && yDist<yHitdist && zDist>=zHitdist) {
+      var val = this.pos.z + zHitdist;
+      if(this.type == "wall") minZ = val;
+    }
+
     if(xDist<xHitdist && yDist<yHitdist && zDist<zHitdist) {
       //alert("now");
       //console.log("zdist = " + zDist + ", zhDist = " + zHitdist);
       if(this.type == "wall") cab.bump(this.pos);
       if(this.type == "speed") cab.boost();
       if(this.type == "jump") cab.jump(10);
-    }
-
-    else if(xDist<xHitdist && yDist<yHitdist) {
-      if(this.type == "wall") cab.minZ = this.height+17;
     }
   }
 }

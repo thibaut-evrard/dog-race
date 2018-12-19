@@ -15,14 +15,14 @@ class car {
     this.engineForce = 0; // engineForce of the car
     this.a = createVector(0,0); // acceleration of the car
     this.weight = 100;
-    this.rayon = 80;
+    this.rayon = 60;
     this.steerAngleMax = 1/this.rayon;
     this.wheelAngle = 0;
     this.raMax = 1;
     this.raMin = 0.1;
     this.wheelSpeed = 0;
     this.drift;
-    this.minZ;
+    this.minZ = 0;
     // constants
     this.cDrag = 0.01; // constante de drag
     this.cRr = 0.3;
@@ -45,6 +45,7 @@ class car {
     this.annimTimer = 0;
     this.annimDeceleration = 0.8;
     var path = pathToTextures + '/kart/';
+    //this.model = model;
     this.image_3 = loadImage(path+"-3.png");
     this.image_2 = loadImage(path+"-2.png");
     this.image_1 = loadImage(path+"-1.png");
@@ -57,12 +58,56 @@ class car {
 
   // rendering the car -> MASTER FUNCTION
   update() {
+    this.worldEvent();
     this.drive(); // handling user input
     this.doPhysics(); // applying the physics engine to the car
   }
 
   draw() {
     this.updateModel();
+  }
+
+  // GIVE POSITION ON MINIMAP
+  worldEvent() {
+    var x = Math.round(this.pos.x/100)
+    var y = Math.round(this.pos.y/100)
+    var position = createVector(x,y);
+
+    if(position.x>0 && position.y>0 && position.x<(level.miniMap.length-1) && position.y<(level.miniMap[0].length - 1)) {
+      var radius = 10
+      for(var a = x-radius; a<x+radius; a++) {
+        for(var b = y-radius; b<y+radius; b++) {
+          if(a>0 && b>0 && a<(level.miniMap.length) && b<a<(level.miniMap.length)) {
+            var cabHeading = p5.Vector.add(this.u).rotate(this.alpha);
+            if(level.miniMap[a][b] == "grassbuste") myEnvironment.drawBushes(cabHeading,a,b);
+          }
+        }
+      }
+    }
+
+    // if the kart is in the miniMap
+    if(position.x>0 && position.y>0 && position.x<(level.miniMap.length-1) && position.y<(level.miniMap[0].length - 1) && this.pos.z == minZ+17) {
+      var event = level.miniMap[position.x][position.y];
+      this.cRr = 0.3;
+      switch(event) {
+        case "grass":
+          this.cRr = 2;
+        break;
+
+        case "jump":
+          this.jump(10);
+        break;
+
+        case "speed":
+          this.boost();
+        break;
+
+        case "road":
+          this.cRr = 0.3;
+        break;
+      }
+    }
+    //console.log(scaledPosition)
   }
 
   // TRANSLATES USER INPUT INTO CODE
@@ -73,11 +118,11 @@ class car {
     this.drift = 0;
     // implement the angle in raMin
       if(keyIsDown(UP_ARROW)) this.engineForce = 10;
-      if(keyIsDown(DOWN_ARROW)) this.engineForce = -this.cBrake;
+      if(keyIsDown(DOWN_ARROW))  this.v.mult(0.95);//this.engineForce = -this.cBrake;
       if(keyIsDown(RIGHT_ARROW) && abs(this.speed) > 0.1) this.smoothTurn(this.steerAngleMax);//this.alpha += this.steerAngleMax*this.speed;
       if(keyIsDown(LEFT_ARROW) && abs(this.speed) > 0.1) this.smoothTurn(-this.steerAngleMax);
       if(!keyIsDown(LEFT_ARROW) && !keyIsDown(RIGHT_ARROW)) this.smoothTurn(0);
-      if(keyIsDown(32)) { this.v.mult(0.95); this.drift = 1; }
+      if(keyIsDown(32)) { this.v.mult(0.99); this.drift = 1; }
   }
 
   smoothTurn(max) {
@@ -97,7 +142,7 @@ class car {
 
     // UPDATE ANGLE
     var speed = this.speed;
-    if(this.wheelSpeed == 0 && this.speed>2) { speed = 2 + (this.speed/8); }
+    if(this.wheelSpeed == 0 && this.speed>2) { speed = 2 + (this.speed/50); }
     var turnForce = this.wheelAngle * speed;
     // APPLY TRANSFORMATIONS
     this.v.rotate(-turnForce);
@@ -172,15 +217,15 @@ class car {
 
   // PHYSICS SUBFUNCTION #4 (GRAVITY)
   calculateGravity() {
-    if(this.pos.z < this.minZ+17) {
+    var ground = minZ + 17;
+    this.pos.z -= this.fGravity;
+    if(this.pos.z < ground) {
       this.fGravity = 0;
-      this.pos.z = 17;
+      this.pos.z = ground;
     }
-    if(this.pos.z > this.minZ+17) {
+    if(this.pos.z > ground) {
       this.fGravity += 0.6;
     }
-    this.pos.z -= this.fGravity;
-    this.minZ = 0;
   }
 
   updateHitbox() {
@@ -192,23 +237,24 @@ class car {
 
   // takes care of the visual part of the car
   updateModel() {
-    fill(0,255,0);
-    stroke(100);
+    //fill(0,255,0);
+    //stroke(100);
     push();
-    translate(this.pos.x,this.pos.y,this.pos.z);
+    translate(this.pos.x,this.pos.y,this.pos.z+3);
     rotate(this.alpha);
     rotateX(-PI/2);
-    texture(this.sprite);
-    plane(40);
+    fill(0,0,0,0)
+    box(40);
+    //texture(this.sprite);
+    //plane(40);
     pop();
   }
-
 
   // when the car collides a wall.
   bump(pos) {
     this.v.mult(0.8);
     var dx =  this.pos.x - pos.x;
-    var dy = this.pos.y - pos.y
+    var dy = this.pos.y - pos.y;
     if(abs(dx) < abs(dy)) {
       if(dy>0) this.pos.y += (60-abs(dy));
       if(dy<0) this.pos.y -= (60-abs(dy));
